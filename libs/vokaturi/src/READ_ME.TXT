@@ -1,5 +1,13 @@
 READ_ME.TXT
 
+- OpenVokaturi version 2.2a, 2017-09-17:
+The analysis runs 2.2 times faster than in version 2.1,
+although the resulting output has stayed exactly the same.
+
+- OpenVokaturi version 2.1c, 2017-07-13:
+The example software `WavFile.h`, as well as `MeasureWav_win64.exe`,
+now recognizes even more types of WAV files.
+
 - OpenVokaturi version 2.1b, 2017-01-31:
 The example software `WavFile.h`, as well as `MeasureWav_win64.exe`,
 now recognizes more types of WAV files.

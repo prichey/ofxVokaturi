@@ -2,7 +2,7 @@
  * Vokaturi9.c
  *
  * Copyright (C) 2016,2017 Paul Boersma, Johnny Ip, Toni Gojani
- * version 2017-01-13
+ * version 2017-09-17
  *
  * This code is part of OpenVokaturi.
  *
@@ -29,10 +29,11 @@
 #include "Sound_and_Pitch.h"
 
 #include <math.h>
+#include "PAIRWISE_SUM.h"
 
 const char *Vokaturi_versionAndLicense () {
 	return
-		"OpenVokaturi version 2.1 for open-source projects, 2017-01-13\n"
+		"OpenVokaturi version 2.2a for open-source projects, 2017-09-17\n"
 		"Distributed under the GNU General Public License, version 3 or later";
 }
 
@@ -391,10 +392,11 @@ void VokaturiVoice_extract (VokaturiVoice me,
 		Each of the 100 nodes has a bias, as well as a weight to each of the nine input nodes.
 	*/
 	for (int ihidden1 = 0; ihidden1 < NUMBER_OF_HIDDEN1; ihidden1 ++) {
-		my hidden1 [ihidden1] = bias1 [ihidden1];
-		for (int cue = 0; cue < NUMBER_OF_CUES9; cue ++) {
-			my hidden1 [ihidden1] += input [cue] * weight1 [cue] [ihidden1];
-		}
+		PAIRWISE_SUM (double, inner, int, NUMBER_OF_CUES9,
+			double *mat = & weightT1 [ihidden1] [0] - 1;
+			double *vec = & input [0] - 1,
+			(++ mat, ++ vec), *mat * *vec)
+		my hidden1 [ihidden1] = inner + bias1 [ihidden1];
 		if (my hidden1 [ihidden1] < 0.0)   // rectify
 			my hidden1 [ihidden1] = 0.0;
 	}
@@ -403,24 +405,26 @@ void VokaturiVoice_extract (VokaturiVoice me,
 		Each of the 20 nodes has a bias, as well as a weight to each of the 100 lower nodes.
 	*/
 	for (int ihidden2 = 0; ihidden2 < NUMBER_OF_HIDDEN2; ihidden2 ++) {
-		my hidden2 [ihidden2] = bias3 [ihidden2];
-		for (int ihidden1 = 0; ihidden1 < NUMBER_OF_HIDDEN1; ihidden1 ++) {
-			my hidden2 [ihidden2] += my hidden1 [ihidden1] * weight3 [ihidden1] [ihidden2];
-		}
+		PAIRWISE_SUM (double, inner, int, NUMBER_OF_HIDDEN1,
+			double *mat = & weightT3 [ihidden2] [0] - 1;
+			double *vec = & my hidden1 [0] - 1,
+			(++ mat, ++ vec), *mat * *vec)
+		my hidden2 [ihidden2] = inner + bias3 [ihidden2];
 		if (my hidden2 [ihidden2] < 0.0)   // rectify
 			my hidden2 [ihidden2] = 0.0;
 	}
 	/*
-		Information then proceeds toward to the output layer, which contains five nodes,
+		Information then proceeds toward the output layer, which contains five nodes,
 		i.e. one node for each emotion class.
 		Each of the 5 nodes has a bias, as well as a weight to each of the 20 lower nodes.
 	*/
 	double output [NUMBER_OF_EMOTIONS];
 	for (int emotion = 0; emotion < NUMBER_OF_EMOTIONS; emotion ++) {
-		output [emotion] = bias5 [emotion];
-		for (int ihidden2 = 0; ihidden2 < NUMBER_OF_HIDDEN2; ihidden2 ++) {
-			output [emotion] += my hidden2 [ihidden2] * weight5 [ihidden2] [emotion];
-		}
+		PAIRWISE_SUM (double, inner, int, NUMBER_OF_HIDDEN2,
+			double *mat = & weightT5 [emotion] [0] - 1;
+			double *vec = & my hidden2 [0] - 1,
+			(++ mat, ++ vec), *mat * *vec)
+		output [emotion] = inner + bias5 [emotion];
 	}
 	/*
 		Turning the output activities into probabilities requires a softmax transformation:

@@ -129,20 +129,25 @@ inline static void VokaturiWavFile_open (const char *fileName, VokaturiWavFile *
 
 	if (! strncmp (header + 36, "data", 4)) {
 		my sampleOffset = 44;
-	} else if (! strncmp (header + 36, "PAD ", 4) || ! strncmp (header + 36, "fact", 4)) {
-		unsigned int padChunkSize =
+	} else if (
+		! strncmp (header + 36, "PAD ", 4) ||
+		! strncmp (header + 36, "fact", 4) ||
+		! strncmp (header + 36, "LIST", 4) ||
+		! strncmp (header + 36, "FLLR", 4))
+	{
+		unsigned int chunkSize =
 			(unsigned char) header [40] |
 			((unsigned char) header [41]) << 8 |
 			((unsigned char) header [42]) << 16 |
 			((unsigned char) header [43]) << 24;
-		if (padChunkSize > 9000) {
-			fprintf (stderr, "VokaturiWavFile error: %s has a too large pad chunk.\n", fileName);
+		if (chunkSize > 9000) {
+			fprintf (stderr, "VokaturiWavFile error: %s has a too large \"%.4s\" chunk.\n", fileName, header + 36);
 			fclose (my f);
 			my f = NULL;
 			return;
 		}
-		if (! strncmp (header + 36 + 4 + 4 + padChunkSize, "data", 4)) {
-			my sampleOffset = 44 + 4 + 4 + padChunkSize;
+		if (! strncmp (header + 36 + 4 + 4 + chunkSize, "data", 4)) {
+			my sampleOffset = 44 + 4 + 4 + chunkSize;
 		} else {
 			fprintf (stderr, "VokaturiWavFile error: %s has no data chunk.\n", fileName);
 			fclose (my f);
@@ -150,8 +155,7 @@ inline static void VokaturiWavFile_open (const char *fileName, VokaturiWavFile *
 			return;
 		}
 	} else {
-		fprintf (stderr, "VokaturiWavFile error: %s contains un unrecognized \"%c%c%c%c\" chunk.\n", fileName,
-			header [36], header [37], header [38], header [39]);
+		fprintf (stderr, "VokaturiWavFile error: %s contains un unrecognized \"%.4s\" chunk.\n", fileName, header + 36);
 		fclose (my f);
 		my f = NULL;
 		return;

@@ -4,7 +4,7 @@
  * Sound.h
  *
  * Copyright (C) 2016,2017 Paul Boersma, Johnny Ip, Toni Gojani
- * version 2017-01-21
+ * version 2017-09-16
  *
  * This code is part of OpenVokaturi.
  *
@@ -23,6 +23,7 @@
  */
 
 #include "Thing.h"
+#include "PAIRWISE_SUM.h"
 
 /*
 	A Sound is a structure that can hold the samples of a monaural sound.
@@ -41,6 +42,12 @@ typedef struct {
 	int length;
 	double samplingFrequencyInHertz;
 } Sound;
+
+inline static void Sound_initWithData (Sound *me, double *samples, int length, double samplingFrequencyInHertz) {
+	my samples = samples;
+	my length = length;
+	my samplingFrequencyInHertz = samplingFrequencyInHertz;
+}
 
 inline static void Sound_initWithLengthAndSamplingFrequency (Sound *me, int length, double samplingFrequencyInHertz) {
 	my samples = (double *) calloc (length, sizeof * my samples);
@@ -88,18 +95,14 @@ inline static void Sound_fillWithNuttallWindow (Sound *me) {
 }
 
 inline static double Sound_getSum (Sound *me) {
-	double sum = 0.0;
-	for (int isamp = 0; isamp < my length; isamp ++) {
-		sum += my samples [isamp];
-	}
+	PAIRWISE_SUM (double, sum, int, my length,
+		double *xx = my samples - 1, ++ xx, *xx)
 	return sum;
 }
 
 inline static double Sound_getSumOfSquares (Sound *me) {
-	double sumOfSquares = 0.0;
-	for (int isamp = 0; isamp < my length; isamp ++) {
-		sumOfSquares += my samples [isamp] * my samples [isamp];
-	}
+	PAIRWISE_SUM (double, sumOfSquares, int, my length,
+		double *xx = my samples - 1, ++ xx, *xx * *xx)
 	return sumOfSquares;
 }
 
@@ -114,9 +117,24 @@ inline static void Sound_addConstant (Sound *me, double constant) {
 	}
 }
 
+inline static void Sound_multiplyByConstant (Sound *me, double constant) {
+	for (int isamp = 0; isamp < my length; isamp ++) {
+		my samples [isamp] *= constant;
+	}
+}
+
 inline static void Sound_subtractMean (Sound *me) {
 	double mean = Sound_getMean (me);
 	Sound_addConstant (me, - mean);
+}
+
+inline static void Sound_normalize (Sound *me) {
+	Sound_subtractMean (me);
+	double sumOfSquares = Sound_getSumOfSquares (me);
+	if (my length < 2) return;
+	double stdev = sqrt (sumOfSquares / (my length - 1));
+	if (stdev == 0.0) return;
+	Sound_multiplyByConstant (me, 1.0 / stdev);
 }
 
 /**

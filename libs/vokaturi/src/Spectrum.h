@@ -4,7 +4,7 @@
  * Spectrum.h
  *
  * Copyright (C) 2016,2017 Paul Boersma, Johnny Ip, Toni Gojani
- * version 2017-01-21
+ * version 2017-07-13
  *
  * This code is part of OpenVokaturi.
  *
@@ -151,7 +151,7 @@ inline static double Spectrum_computeBandEnergyDensity (Spectrum *me, double fmi
 		energy += re * re + im * im;
 		numberOfEnergiesAdded += 1;
 	}
-	return ( numberOfEnergiesAdded > 0 ? energy / numberOfEnergiesAdded : nan(0) );
+	return ( numberOfEnergiesAdded > 0 ? energy / numberOfEnergiesAdded : -1.0 );
 }
 
 /* End of file Spectrum.h */

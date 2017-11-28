@@ -4,7 +4,7 @@
  * Thing.h
  *
  * Copyright (C) 2016,2017 Paul Boersma, Johnny Ip, Toni Gojani
- * version 2016-01-21
+ * version 2017-08-20
  *
  * This code is part of OpenVokaturi.
  *
@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdint.h>
 #include <math.h>
 
 /*
@@ -33,6 +34,7 @@
 */
 #define my  me ->
 #define your  you ->
+#define our  us ->
 
 #define strequ  ! strcmp
 #define strnequ  ! strncmp
