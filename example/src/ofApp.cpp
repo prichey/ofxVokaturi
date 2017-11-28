@@ -5,26 +5,16 @@
  */
 
 /* Audio */
-#define BUFFER_SIZE 256
+#define OUT_CHANNELS 0
+#define IN_CHANNELS 2
 #define SAMPLE_RATE ofxVokaturi::SAMPLE_RATE
+#define BUFFER_SIZE 256
+#define NUM_BUFFERS 4
 
 //--------------------------------------------------------------
 void ofApp::setup(){
-	ofSoundStreamSettings settings;
-
 	soundStream.printDeviceList();
-
-	auto devices = soundStream.getMatchingDevices("default");
-	if(!devices.empty()){
-		settings.setOutDevice(devices[0]);
-	}
-
-	settings.setInListener(this);
-	settings.sampleRate = SAMPLE_RATE;
-	settings.numOutputChannels = 0;
-	settings.numInputChannels = 1;
-	settings.bufferSize = BUFFER_SIZE;
-	soundStream.setup(settings);
+	soundStream.setup(this, OUT_CHANNELS, IN_CHANNELS, SAMPLE_RATE, BUFFER_SIZE, NUM_BUFFERS);
 
 	ofBackground(53, 53, 53);
 }
